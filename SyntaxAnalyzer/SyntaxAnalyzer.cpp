@@ -2,9 +2,15 @@
 //
 
 #include <iostream>
+#include "Parser.h"
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	Parser parser;
+	parser.get_lexems_from_file("demo.txt");
+	parser.parse();
+	
+	system("pause");
+	return 0;
 }
 

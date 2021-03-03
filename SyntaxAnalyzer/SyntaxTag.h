@@ -1,0 +1,22 @@
+#pragma once
+
+enum class SyntaxTag
+{
+	ID_TOKEN,
+	FLOAT_NUMBER,
+	
+	ASSIGN_TOKEN,
+	
+	PLUS_TOKEN,
+	MINUS_TOKEN,
+	STAR_TOKEN,
+	SLASH_TOKEN,
+		
+	LP_TOKEN,
+	RP_TOKEN,
+	SEMICOLON_TOKEN,
+	
+	END_OF_FILE,
+	EPS,
+	UNKNOWN_TOKEN
+};
