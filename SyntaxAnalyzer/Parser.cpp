@@ -91,7 +91,7 @@ void Parser::parse()
 	AstDrawer drawer;
 	for (int line = 0; line < _lines; line++)
 	{
-		_root = new SimpleStatementNode();
+		_root = new AstNode(AstTag::STMT);
 		stmt();
 		drawer.draw_tree(_root, true);
 		delete _root;
@@ -104,21 +104,21 @@ bool Parser::stmt()
 	// STMT -> ID := EXPR;
 	if (current_token().token_type == SyntaxTag::ID_TOKEN)
 	{
-		_root->add_child(current_token());
+		_root->add_child(new SyntaxToken(current_token()));
 		std::cout << current_token();
 		if (next_token().token_type == SyntaxTag::ASSIGN_TOKEN)
 		{
-			_root->add_child(current_token());
+			_root->add_child(new AstNode(current_token()));
 			std::cout << current_token();
-			ExpressionNode* expr_node = new ExpressionNode();
+			AstNode* expr_node = new AstNode(AstTag::EXPRESSION);
 			if (expr(expr_node))
 			{
-				_root->add_child(*expr_node);
-				//delete expr_node;
+				_root->add_child(expr_node);
+				delete expr_node;
 
 				if (next_token().token_type == SyntaxTag::SEMICOLON_TOKEN)
 				{
-					_root->add_child(current_token());
+					_root->add_child(new AstNode(current_token()));
 					std::cout << current_token() << std::endl;
 					next_token();
 					return true;
@@ -135,46 +135,46 @@ bool Parser::stmt()
 	return false;
 }
 
-bool Parser::expr(ExpressionNode* expr_node)
+bool Parser::expr(AstNode* expr_node)
 {
 	// EXPR -> TRANS ADD_SUB
-	ExpressionNode* trans_node = new ExpressionNode(AstTag::TRANS);
+	AstNode* trans_node = new AstNode(AstTag::TRANS);
 	if (trans(trans_node))
 	{
-		expr_node->add_child(*trans_node);
-		//delete trans_node;
+		expr_node->add_child(trans_node);
+		delete trans_node;
 
-		ExpressionNode* add_sub_node = new ExpressionNode(AstTag::ADD_SUB);
+		AstNode* add_sub_node = new AstNode(AstTag::ADD_SUB);
 		if (add_sub(add_sub_node))
 		{
-			expr_node->add_child(*add_sub_node);
-			//delete add_sub_node;
+			expr_node->add_child(add_sub_node);
+			delete add_sub_node;
 		}
 		return true;
 	}
 	return false;
 }
 
-bool Parser::add_sub(ExpressionNode* add_sub_node)
+bool Parser::add_sub(AstNode* add_sub_node)
 {
 	// ADD_SUB -> + TRANS ADD_SUB
 
 	SyntaxToken word = lookahead();
 	if (word.token_type == SyntaxTag::PLUS_TOKEN || word.token_type == SyntaxTag::MINUS_TOKEN)
 	{
-		add_sub_node->add_child(current_token());
+		add_sub_node->add_child(new AstNode(current_token()));
 		std::cout << next_token();
-		ExpressionNode* trans_node = new ExpressionNode(AstTag::TRANS);
+		AstNode* trans_node = new AstNode(AstTag::TRANS);
 		if (trans(trans_node))
 		{
-			add_sub_node->add_child(*trans_node);
-			//delete trans_node;
+			add_sub_node->add_child(trans_node);
+			delete trans_node;
 
-			ExpressionNode* add_sub_node_in = new ExpressionNode(AstTag::ADD_SUB);
+			AstNode* add_sub_node_in = new AstNode(AstTag::ADD_SUB);
 			if (add_sub(add_sub_node_in))
 			{
-				add_sub_node->add_child(*add_sub_node_in);
-				//delete add_sub_node_in;
+				add_sub_node->add_child(add_sub_node_in);
+				delete add_sub_node_in;
 			}
 			return true;
 		}
@@ -187,45 +187,45 @@ bool Parser::add_sub(ExpressionNode* add_sub_node)
 	return false;
 }
 
-bool Parser::trans(ExpressionNode* trans_node)
+bool Parser::trans(AstNode* trans_node)
 {
 	// TRANS -> FACTOR MUL_DIV
-	ExpressionNode* factor_node = new ExpressionNode(AstTag::FACTOR);
+	AstNode* factor_node = new AstNode(AstTag::FACTOR);
 	if (factor(factor_node))
 	{
-		trans_node->add_child(*factor_node);
+		trans_node->add_child(factor_node);
 		//delete factor_node;
 
-		ExpressionNode* mul_div_node = new ExpressionNode(AstTag::MUL_DIV);
+		AstNode* mul_div_node = new AstNode(AstTag::MUL_DIV);
 		if (mul_div(mul_div_node))
 		{
-			trans_node->add_child(*mul_div_node);
-			//delete mul_div_node;
+			trans_node->add_child(mul_div_node);
+			delete mul_div_node;
 		}
 		return true;
 	}
 	return false;
 }
 
-bool Parser::mul_div(ExpressionNode* mul_div_node)
+bool Parser::mul_div(AstNode* mul_div_node)
 {
 	// MUL_DIV -> FACTOR MUL_DIV
 	SyntaxToken word = lookahead();
 	if (word.token_type == SyntaxTag::STAR_TOKEN || word.token_type == SyntaxTag::SLASH_TOKEN)
 	{
-		mul_div_node->add_child(current_token());
+		mul_div_node->add_child(new AstNode(current_token()));
 		std::cout << next_token();
-		ExpressionNode* factor_node = new ExpressionNode(AstTag::FACTOR);
+		AstNode* factor_node = new AstNode(AstTag::FACTOR);
 		if (factor(factor_node))
 		{
-			mul_div_node->add_child(*factor_node);
-			//delete factor_node;
+			mul_div_node->add_child(factor_node);
+			delete factor_node;
 
-			ExpressionNode* mul_div_node_in = new ExpressionNode(AstTag::MUL_DIV);
+			AstNode* mul_div_node_in = new AstNode(AstTag::MUL_DIV);
 			if (mul_div(mul_div_node_in))
 			{
-				mul_div_node->add_child(*mul_div_node_in);
-				//delete mul_div_node_in;
+				mul_div_node->add_child(mul_div_node_in);
+				delete mul_div_node_in;
 			}
 			return true;
 		}
@@ -238,22 +238,22 @@ bool Parser::mul_div(ExpressionNode* mul_div_node)
 	return false;
 }
 
-bool Parser::factor(ExpressionNode* factor_node)
+bool Parser::factor(AstNode* factor_node)
 {
 	// FACTOR -> ( EXPR ) | FLOAT_NUM | ID_TOKEN
 	if (next_token().token_type == SyntaxTag::LP_TOKEN)
 	{
-		factor_node->add_child(current_token());
+		factor_node->add_child(new AstNode(current_token()));
 		std::cout << current_token();
-		ExpressionNode* expr_node = new ExpressionNode(AstTag::EXPRESSION);
+		AstNode* expr_node = new AstNode(AstTag::EXPRESSION);
 		if (expr(expr_node))
 		{
-			factor_node->add_child(*expr_node);
-			//delete expr_node;
+			factor_node->add_child(expr_node);
+			delete expr_node;
 
 			if (next_token().token_type == SyntaxTag::RP_TOKEN)
 			{
-				factor_node->add_child(current_token());
+				factor_node->add_child(new AstNode(current_token()));
 				std::cout << current_token();
 				return true;
 			}
@@ -261,13 +261,13 @@ bool Parser::factor(ExpressionNode* factor_node)
 	}
 	else if (current_token().token_type == SyntaxTag::FLOAT_NUMBER)
 	{
-		factor_node->add_child(current_token());
+		factor_node->add_child(new AstNode(current_token()));
 		std::cout << current_token();
 		return true;
 	}
 	else if (current_token().token_type == SyntaxTag::ID_TOKEN)
 	{
-		factor_node->add_child(current_token());
+		factor_node->add_child(new AstNode(current_token()));
 		std::cout << current_token();
 		return true;
 	}

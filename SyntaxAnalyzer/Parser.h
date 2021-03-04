@@ -88,7 +88,7 @@ struct Parser
 
 
 	private:
-		SimpleStatementNode* _root;
+		AstNode* _root;
 
 		std::vector<SyntaxToken> _lexems;
 		
@@ -102,10 +102,10 @@ struct Parser
 		
 
 		bool stmt();
-		bool expr(ExpressionNode* expr_node);
-		bool add_sub(ExpressionNode* add_sub_node);
-		bool trans(ExpressionNode* trans_node);
-		bool mul_div(ExpressionNode* mul_div_node);
-		bool factor(ExpressionNode* factor_node);
+		bool expr(AstNode* expr_node);
+		bool add_sub(AstNode* add_sub_node);
+		bool trans(AstNode* trans_node);
+		bool mul_div(AstNode* mul_div_node);
+		bool factor(AstNode* factor_node);
 
 };
