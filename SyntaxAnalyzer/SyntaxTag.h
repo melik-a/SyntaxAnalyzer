@@ -17,6 +17,5 @@ enum class SyntaxTag
 	SEMICOLON_TOKEN,
 	
 	END_OF_FILE,
-	EPS,
 	UNKNOWN_TOKEN
 };

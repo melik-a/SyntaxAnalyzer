@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "AST.h"
+#include "AstNode.h"
 #include "SyntaxTag.h"
 
 struct SyntaxToken : AstNode
@@ -67,7 +67,7 @@ struct SyntaxToken : AstNode
 
 	void print_node() override
 	{
-		std::cout << " <" << lexeme << ", " << token_type_to_string() << "> ";
+		std::cout << " <" << token_type_to_string() << ", " << lexeme << "> ";
 	}
 
 };

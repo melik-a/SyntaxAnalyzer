@@ -9,5 +9,5 @@ enum class AstTag
 	MUL_DIV,
 	FACTOR,
 
-	SYNTAX_TOKEN,
+	SYNTAX_TOKEN
 };

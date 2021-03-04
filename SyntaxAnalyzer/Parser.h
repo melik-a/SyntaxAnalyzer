@@ -4,8 +4,7 @@
 #include <vector>
 
 #include "SyntaxToken.h"
-#include "AST.h"
-
+#include "AstNode.h"
 
 
 /*	STMT - START POINT
@@ -84,8 +83,6 @@ struct Parser
 {
 	bool get_lexems_from_file(std::string lex_file);
 	void parse();
-
-
 
 	private:
 		AstNode* _root;

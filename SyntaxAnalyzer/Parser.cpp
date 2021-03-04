@@ -1,5 +1,7 @@
 #include "Parser.h"
+#include "AstDrawer.h"
 #include <fstream>
+
 
 std::ostream& operator << (std::ostream& os, SyntaxToken tok)
 {
@@ -22,6 +24,7 @@ bool Parser::get_lexems_from_file(std::string lex_file)
 	std::string lexeme_type = "";
 	SyntaxTag token_tag;
 
+	std::cout << "input file:\n";
 	while (!file.eof())
 	{
 		std::getline(file, lexeme,'\t');
@@ -49,12 +52,10 @@ bool Parser::get_lexems_from_file(std::string lex_file)
 			token_tag = SyntaxTag::STAR_TOKEN;
 		else if (lexeme_type == "SLASH_TOKEN")
 			token_tag = SyntaxTag::SLASH_TOKEN;
-		else if (lexeme_type == "EPS")
-			token_tag = SyntaxTag::EPS;
 		else
 			token_tag = SyntaxTag::UNKNOWN_TOKEN;
 		_lexems.push_back(SyntaxToken(lexeme, token_tag));
-		//std::cout << lexeme << "\t" << lexeme_type << " \n";
+		std::cout << lexeme << "\t" << lexeme_type << " \n";
 	}
 	file.close();
 	return true;
@@ -92,7 +93,9 @@ void Parser::parse()
 	for (int line = 0; line < _lines; line++)
 	{
 		_root = new AstNode(AstTag::STMT);
+		std::cout << "\nparsed line " << line + 1 << ":\n";
 		stmt();
+		std::cout << "\nparsed ast " << ":\n";
 		drawer.draw_tree(_root, true);
 		delete _root;
 	}
@@ -108,17 +111,17 @@ bool Parser::stmt()
 		std::cout << current_token();
 		if (next_token().token_type == SyntaxTag::ASSIGN_TOKEN)
 		{
-			_root->add_child(new AstNode(current_token()));
+			_root->add_child(new SyntaxToken(current_token()));
 			std::cout << current_token();
 			AstNode* expr_node = new AstNode(AstTag::EXPRESSION);
 			if (expr(expr_node))
 			{
 				_root->add_child(expr_node);
-				delete expr_node;
+				//delete expr_node;
 
 				if (next_token().token_type == SyntaxTag::SEMICOLON_TOKEN)
 				{
-					_root->add_child(new AstNode(current_token()));
+					_root->add_child(new SyntaxToken(current_token()));
 					std::cout << current_token() << std::endl;
 					next_token();
 					return true;
@@ -126,11 +129,12 @@ bool Parser::stmt()
 			}
 		}
 		else
-			std::cout << " ERROR -> ASSIGN_TOKEN not found after ID_TOKEN " << std::endl;
+			std::cout << " ERROR -> unexpected token " << std::endl;
 	}
 	else
 	{
-		std::cout << "ERROR -> statement doesn't start with an ID_TOKEN " << std::endl;
+		// to do: add list of errors for printing after parsing
+		std::cout << "ERROR -> unexpected token: expected - ID_TOKEN, got - " << current_token() << std::endl;
 	}
 	return false;
 }
@@ -142,14 +146,9 @@ bool Parser::expr(AstNode* expr_node)
 	if (trans(trans_node))
 	{
 		expr_node->add_child(trans_node);
-		delete trans_node;
-
 		AstNode* add_sub_node = new AstNode(AstTag::ADD_SUB);
 		if (add_sub(add_sub_node))
-		{
 			expr_node->add_child(add_sub_node);
-			delete add_sub_node;
-		}
 		return true;
 	}
 	return false;
@@ -158,31 +157,20 @@ bool Parser::expr(AstNode* expr_node)
 bool Parser::add_sub(AstNode* add_sub_node)
 {
 	// ADD_SUB -> + TRANS ADD_SUB
-
 	SyntaxToken word = lookahead();
 	if (word.token_type == SyntaxTag::PLUS_TOKEN || word.token_type == SyntaxTag::MINUS_TOKEN)
 	{
-		add_sub_node->add_child(new AstNode(current_token()));
+		add_sub_node->add_child(new SyntaxToken(current_token()));
 		std::cout << next_token();
 		AstNode* trans_node = new AstNode(AstTag::TRANS);
 		if (trans(trans_node))
 		{
 			add_sub_node->add_child(trans_node);
-			delete trans_node;
-
-			AstNode* add_sub_node_in = new AstNode(AstTag::ADD_SUB);
-			if (add_sub(add_sub_node_in))
-			{
-				add_sub_node->add_child(add_sub_node_in);
-				delete add_sub_node_in;
-			}
+			AstNode* add_sub_node_nested = new AstNode(AstTag::ADD_SUB);
+			if (add_sub(add_sub_node_nested))
+				add_sub_node->add_child(add_sub_node_nested);
 			return true;
 		}
-	}
-	else if (word.token_type == SyntaxTag::EPS)
-	{
-		std::cout << "ADD_SUB -> EPS" << std::endl;
-		return true;
 	}
 	return false;
 }
@@ -194,14 +182,9 @@ bool Parser::trans(AstNode* trans_node)
 	if (factor(factor_node))
 	{
 		trans_node->add_child(factor_node);
-		//delete factor_node;
-
 		AstNode* mul_div_node = new AstNode(AstTag::MUL_DIV);
 		if (mul_div(mul_div_node))
-		{
 			trans_node->add_child(mul_div_node);
-			delete mul_div_node;
-		}
 		return true;
 	}
 	return false;
@@ -213,27 +196,17 @@ bool Parser::mul_div(AstNode* mul_div_node)
 	SyntaxToken word = lookahead();
 	if (word.token_type == SyntaxTag::STAR_TOKEN || word.token_type == SyntaxTag::SLASH_TOKEN)
 	{
-		mul_div_node->add_child(new AstNode(current_token()));
+		mul_div_node->add_child(new SyntaxToken(current_token()));
 		std::cout << next_token();
 		AstNode* factor_node = new AstNode(AstTag::FACTOR);
 		if (factor(factor_node))
 		{
 			mul_div_node->add_child(factor_node);
-			delete factor_node;
-
-			AstNode* mul_div_node_in = new AstNode(AstTag::MUL_DIV);
-			if (mul_div(mul_div_node_in))
-			{
-				mul_div_node->add_child(mul_div_node_in);
-				delete mul_div_node_in;
-			}
+			AstNode* mul_div_node_nested = new AstNode(AstTag::MUL_DIV);
+			if (mul_div(mul_div_node_nested))
+				mul_div_node->add_child(mul_div_node_nested);
 			return true;
 		}
-	}
-	else if (word.token_type == SyntaxTag::EPS)
-	{
-		std::cout << "ADD_SUB -> EPS" << std::endl;
-		return true;
 	}
 	return false;
 }
@@ -243,17 +216,15 @@ bool Parser::factor(AstNode* factor_node)
 	// FACTOR -> ( EXPR ) | FLOAT_NUM | ID_TOKEN
 	if (next_token().token_type == SyntaxTag::LP_TOKEN)
 	{
-		factor_node->add_child(new AstNode(current_token()));
+		factor_node->add_child(new SyntaxToken(current_token()));
 		std::cout << current_token();
 		AstNode* expr_node = new AstNode(AstTag::EXPRESSION);
 		if (expr(expr_node))
 		{
 			factor_node->add_child(expr_node);
-			delete expr_node;
-
 			if (next_token().token_type == SyntaxTag::RP_TOKEN)
 			{
-				factor_node->add_child(new AstNode(current_token()));
+				factor_node->add_child(new SyntaxToken(current_token()));
 				std::cout << current_token();
 				return true;
 			}
@@ -261,17 +232,16 @@ bool Parser::factor(AstNode* factor_node)
 	}
 	else if (current_token().token_type == SyntaxTag::FLOAT_NUMBER)
 	{
-		factor_node->add_child(new AstNode(current_token()));
+		factor_node->add_child(new SyntaxToken(current_token()));
 		std::cout << current_token();
 		return true;
 	}
 	else if (current_token().token_type == SyntaxTag::ID_TOKEN)
 	{
-		factor_node->add_child(new AstNode(current_token()));
+		factor_node->add_child(new SyntaxToken(current_token()));
 		std::cout << current_token();
 		return true;
 	}
 	return false;
 }
-
 
