@@ -156,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AST.h" />
+    <ClInclude Include="AstTag.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="SyntaxTag.h" />
     <ClInclude Include="SyntaxToken.h" />

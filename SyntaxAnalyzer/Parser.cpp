@@ -8,7 +8,6 @@ std::ostream& operator << (std::ostream& os, SyntaxToken tok)
 	return os;
 }
 
-
 bool Parser::get_lexems_from_file(std::string lex_file)
 {
 	std::ifstream file(lex_file);
@@ -89,26 +88,37 @@ SyntaxToken Parser::lookahead()
 
 void Parser::parse()
 {
+	AstDrawer drawer;
 	for (int line = 0; line < _lines; line++)
 	{
+		_root = new SimpleStatementNode();
 		stmt();
+		drawer.draw_tree(_root, true);
+		delete _root;
 	}
 }
 
 
 bool Parser::stmt()
 {
-	// STMT -> ID := EXPR
+	// STMT -> ID := EXPR;
 	if (current_token().token_type == SyntaxTag::ID_TOKEN)
 	{
+		_root->add_child(current_token());
 		std::cout << current_token();
 		if (next_token().token_type == SyntaxTag::ASSIGN_TOKEN)
 		{
+			_root->add_child(current_token());
 			std::cout << current_token();
-			if (expr())
+			ExpressionNode* expr_node = new ExpressionNode();
+			if (expr(expr_node))
 			{
+				_root->add_child(*expr_node);
+				//delete expr_node;
+
 				if (next_token().token_type == SyntaxTag::SEMICOLON_TOKEN)
 				{
+					_root->add_child(current_token());
 					std::cout << current_token() << std::endl;
 					next_token();
 					return true;
@@ -125,29 +135,47 @@ bool Parser::stmt()
 	return false;
 }
 
-bool Parser::expr()
+bool Parser::expr(ExpressionNode* expr_node)
 {
 	// EXPR -> TRANS ADD_SUB
-	if (trans())
+	ExpressionNode* trans_node = new ExpressionNode(AstTag::TRANS);
+	if (trans(trans_node))
 	{
-		add_sub();
+		expr_node->add_child(*trans_node);
+		//delete trans_node;
+
+		ExpressionNode* add_sub_node = new ExpressionNode(AstTag::ADD_SUB);
+		if (add_sub(add_sub_node))
+		{
+			expr_node->add_child(*add_sub_node);
+			//delete add_sub_node;
+		}
 		return true;
 	}
 	return false;
 }
 
-bool Parser::add_sub()
+bool Parser::add_sub(ExpressionNode* add_sub_node)
 {
 	// ADD_SUB -> + TRANS ADD_SUB
+
 	SyntaxToken word = lookahead();
 	if (word.token_type == SyntaxTag::PLUS_TOKEN || word.token_type == SyntaxTag::MINUS_TOKEN)
 	{
+		add_sub_node->add_child(current_token());
 		std::cout << next_token();
-		if (trans())
+		ExpressionNode* trans_node = new ExpressionNode(AstTag::TRANS);
+		if (trans(trans_node))
 		{
-			//std::cout << "ADD_SUB -> TRANS ";
-			add_sub();
-			// std::cout << "ADD_SUB" << std::endl;
+			add_sub_node->add_child(*trans_node);
+			//delete trans_node;
+
+			ExpressionNode* add_sub_node_in = new ExpressionNode(AstTag::ADD_SUB);
+			if (add_sub(add_sub_node_in))
+			{
+				add_sub_node->add_child(*add_sub_node_in);
+				//delete add_sub_node_in;
+			}
 			return true;
 		}
 	}
@@ -159,27 +187,46 @@ bool Parser::add_sub()
 	return false;
 }
 
-bool Parser::trans()
+bool Parser::trans(ExpressionNode* trans_node)
 {
 	// TRANS -> FACTOR MUL_DIV
-	if (factor())
+	ExpressionNode* factor_node = new ExpressionNode(AstTag::FACTOR);
+	if (factor(factor_node))
 	{
-		mul_div();
+		trans_node->add_child(*factor_node);
+		//delete factor_node;
+
+		ExpressionNode* mul_div_node = new ExpressionNode(AstTag::MUL_DIV);
+		if (mul_div(mul_div_node))
+		{
+			trans_node->add_child(*mul_div_node);
+			//delete mul_div_node;
+		}
 		return true;
 	}
 	return false;
 }
 
-bool Parser::mul_div()
+bool Parser::mul_div(ExpressionNode* mul_div_node)
 {
 	// MUL_DIV -> FACTOR MUL_DIV
 	SyntaxToken word = lookahead();
 	if (word.token_type == SyntaxTag::STAR_TOKEN || word.token_type == SyntaxTag::SLASH_TOKEN)
 	{
+		mul_div_node->add_child(current_token());
 		std::cout << next_token();
-		if (factor())
+		ExpressionNode* factor_node = new ExpressionNode(AstTag::FACTOR);
+		if (factor(factor_node))
 		{
-			mul_div();
+			mul_div_node->add_child(*factor_node);
+			//delete factor_node;
+
+			ExpressionNode* mul_div_node_in = new ExpressionNode(AstTag::MUL_DIV);
+			if (mul_div(mul_div_node_in))
+			{
+				mul_div_node->add_child(*mul_div_node_in);
+				//delete mul_div_node_in;
+			}
 			return true;
 		}
 	}
@@ -191,16 +238,22 @@ bool Parser::mul_div()
 	return false;
 }
 
-bool Parser::factor()
+bool Parser::factor(ExpressionNode* factor_node)
 {
 	// FACTOR -> ( EXPR ) | FLOAT_NUM | ID_TOKEN
 	if (next_token().token_type == SyntaxTag::LP_TOKEN)
 	{
+		factor_node->add_child(current_token());
 		std::cout << current_token();
-		if (expr())
+		ExpressionNode* expr_node = new ExpressionNode(AstTag::EXPRESSION);
+		if (expr(expr_node))
 		{
+			factor_node->add_child(*expr_node);
+			//delete expr_node;
+
 			if (next_token().token_type == SyntaxTag::RP_TOKEN)
 			{
+				factor_node->add_child(current_token());
 				std::cout << current_token();
 				return true;
 			}
@@ -208,11 +261,13 @@ bool Parser::factor()
 	}
 	else if (current_token().token_type == SyntaxTag::FLOAT_NUMBER)
 	{
+		factor_node->add_child(current_token());
 		std::cout << current_token();
 		return true;
 	}
 	else if (current_token().token_type == SyntaxTag::ID_TOKEN)
 	{
+		factor_node->add_child(current_token());
 		std::cout << current_token();
 		return true;
 	}

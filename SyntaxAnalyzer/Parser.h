@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "SyntaxToken.h"
+#include "AST.h"
 
 
 
@@ -87,7 +88,8 @@ struct Parser
 
 
 	private:
-		
+		SimpleStatementNode* _root;
+
 		std::vector<SyntaxToken> _lexems;
 		
 		int _current{};
@@ -100,10 +102,10 @@ struct Parser
 		
 
 		bool stmt();
-		bool expr();
-		bool add_sub();
-		bool trans();
-		bool mul_div();
-		bool factor();
+		bool expr(ExpressionNode* expr_node);
+		bool add_sub(ExpressionNode* add_sub_node);
+		bool trans(ExpressionNode* trans_node);
+		bool mul_div(ExpressionNode* mul_div_node);
+		bool factor(ExpressionNode* factor_node);
 
 };
