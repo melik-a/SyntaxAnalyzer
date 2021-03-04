@@ -151,17 +151,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AstNode.cpp" />
-    <ClCompile Include="Parser.cpp" />
+    <ClCompile Include="source\AstNode.cpp" />
+    <ClCompile Include="source\Parser.cpp" />
     <ClCompile Include="SyntaxAnalyzer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AstNode.h" />
-    <ClInclude Include="AstDrawer.h" />
-    <ClInclude Include="AstTag.h" />
-    <ClInclude Include="Parser.h" />
-    <ClInclude Include="SyntaxTag.h" />
-    <ClInclude Include="SyntaxToken.h" />
+    <ClInclude Include="include\AstDrawer.h" />
+    <ClInclude Include="include\AstNode.h" />
+    <ClInclude Include="include\AstTag.h" />
+    <ClInclude Include="include\Parser.h" />
+    <ClInclude Include="include\SyntaxTag.h" />
+    <ClInclude Include="include\SyntaxToken.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

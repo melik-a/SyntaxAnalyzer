@@ -34,7 +34,7 @@
 				 |	ID
 
 	parser type LL(1)
-	algorithm - 
+	algorithm - recursive descent
 
 */
 

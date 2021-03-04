@@ -1,5 +1,5 @@
-#include "Parser.h"
-#include "AstDrawer.h"
+#include "../include/Parser.h"
+#include "../include/AstDrawer.h"
 #include <fstream>
 
 

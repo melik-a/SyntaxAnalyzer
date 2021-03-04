@@ -1,4 +1,4 @@
-#include "AstNode.h"
+#include "../include/AstNode.h"
 
 
 AstNode::AstNode() : _node_type(AstTag::SYNTAX_TOKEN) {}
